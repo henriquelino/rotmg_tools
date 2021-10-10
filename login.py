@@ -1,3 +1,5 @@
+
+
 # from https://github.com/vtrouter/RotMG-Headless-Launcher/blob/main/headless_launch.py
 # and https://github.com/Zeroeh/RotMG-Appspot
 
@@ -15,20 +17,69 @@ import threading
 import random
 import js2py
 import json
+import argparse
 
 try:
     application_path = os.path.dirname(os.path.abspath(__file__))
 except:
     application_path = os.path.dirname(os.path.abspath(''))
 
-CONSTANTS_FILE_JS = fr"{application_path}\constants.js"
-ACCOUNTS_FILE = fr"{application_path}\accounts.json"
+parser = argparse.ArgumentParser()
+parser.add_argument('--constants', default=False, help='Path to constants.js')
+parser.add_argument('--accounts', default=False, help='Path to json of all accounts to do login')
+parser.add_argument('--email', default=False, help='Email to login')
+parser.add_argument('--password', default=False, help='Password to login')
+parser.add_argument('--dumps', default=False, help='Should extract account json infos? (muledump like)')
+parser.add_argument('--buy_free_packs', action='store_true', default=False, help='Buy all 0 gold packages')
+parser.add_argument('--print_calendar_status', action='store_true', default=False, help='Show account calendar (logged days, claimed, calendar items)')
+args = parser.parse_args()
 
+# ----------
+
+if not args.constants:
+    CONSTANTS_FILE_JS = fr"{application_path}\constants.js"
+else:
+    CONSTANTS_FILE_JS = args.constants
+
+if not os.path.exists(CONSTANTS_FILE_JS):
+    exit(f"'{CONSTANTS_FILE_JS}' does not exists, please create it!")
+
+# ----------
+
+if not args.accounts and not args.password and not args.email:
+    # if user not provide an account, passw and email, try to use a json inside the app folder
+    ACCOUNTS_FILE = fr"{application_path}\accounts.json"
+
+elif args.accounts and not args.password and not args.email:
+    # if accounts json is provided, use it
+    ACCOUNTS_FILE = fr"{args.accounts}"
+else:
+    ACCOUNTS_FILE = None
+# ----------
+
+if args.password and not args.email:
+    exit(f"password was provided but not an email!")
+    
+if not args.password and args.email:
+    exit(f"email was provided but not an email!")
+    
+# ----------
+
+if args.password and args.email and args.accounts:
+    exit(f"email, password and a file was provided, please use only FILE or only mail+pass")
+
+# ----------
+
+if ACCOUNTS_FILE and os.path.exists(ACCOUNTS_FILE):
+    # neither pass or mail was give, use the existing file
+    with open(ACCOUNTS_FILE, 'r') as file:
+        accounts = json.load(file)
+else:
+    accounts = { args.email : args.password }
+
+# loads constants after validate inputs
 _, constants = js2py.run_file(CONSTANTS_FILE_JS)
 
-with open(ACCOUNTS_FILE, 'r') as file:
-    accounts = json.load(file)
-    
 
 ################ CLASS ################
 class Spinner:
@@ -257,19 +308,7 @@ class rotmg_account():
         
         chars_dict = xmltodict.parse(response.text)
         return chars_dict
-    
-    def list_daily_quests(self):
-        
-        url = "https://www.realmofthemadgod.com/dailyquest/"
-        params = {
-            'accessToken': self.access_token,
-        }
-        response = requests.get(url, params=params)
-        if not response.ok:
-            print(response.url)
-            print(response.text)
-            exit()
-        
+      
     ################ CALENDAR ################
     def fetch_daily_login_calendar(self, name_items=True):
         """
@@ -496,7 +535,7 @@ def main():
         i += 1
         print('\n\n-------------------- NEW LAP --------------------')
         print(f'Lap {i}')
-        print(f"user, password = {user}")
+        print(f"user = {user}")
 
         account = rotmg_account(user, password)
         account.login(); print(f'Logged in')
@@ -504,27 +543,26 @@ def main():
         # list chars count as login?
         account.list_chars(); print(f'Chars fetched')
         
-        calendar=account.get_daily_claim_status()
-        print(calendar)
+        if args.print_calendar_status:
+            calendar=account.get_daily_claim_status()
+            print(calendar)
+            
         
-        x = account.list_daily_quests()
-        print(x)
-        exit()
+        if args.buy_free_packs:        
+            # buy all free packages available
+            free_packages_list = account.filter_free_packages()
+            if free_packages_list:
+                # if there any free package
+                free_packs_bought = account.purchase_all_packages(free_packages_list)
+                if not free_packs_bought:
+                    print('Error buying package!')
         
-        # buy all free packages available
-        free_packages_list = account.filter_free_packages()
-        if free_packages_list:
-            # if there any free package
-            free_packs_bought = account.purchase_all_packages(free_packages_list)
-            if not free_packs_bought:
-                print('Error buying package!')
-        
-        exit()
-        # dumps account info into ./accounts/ACCOUNT_NAME.json
-        chars=account.char_dump()
-        output_json_path = fr"{application_path}\accounts\{chars['Chars']['Account']['Name']}.json"
-        with open(output_json_path, 'w', encoding='utf-8') as f:
-            json.dump(chars, f, ensure_ascii=False, indent=2)
+        if args.dumps:
+            # dumps account info into ./accounts/ACCOUNT_NAME.json
+            chars = account.char_dump()
+            output_json_path = fr"{application_path}\accounts\{chars['Chars']['Account']['Name']}.json"
+            with open(output_json_path, 'w', encoding='utf-8') as f:
+                json.dump(chars, f, ensure_ascii=False, indent=2)
             
             
 if __name__ == '__main__':
