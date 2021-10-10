@@ -18,6 +18,9 @@ Also, instead of using accounts.json you can pass email and password via argumen
 * Can dumps account infos so you can parse later (data like muledump does, like items in vault, pots, gifts, fame)
 * Buy free packages that are available
 
+![Showing the account daily login calendar](./imgs/showing_calendar.png)
+![Buying packs for multiple accounts](./imgs/buying_packs.png)
+
 ## Args
 * constants = Path to constants.js
 * accounts = Path to json of all accounts to do login, if not provided, use the file in app folder
