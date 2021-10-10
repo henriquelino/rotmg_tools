@@ -29,16 +29,16 @@ Also, instead of using accounts.json you can pass email and password via argumen
 
 ### Args Examples
 
-To use your muledump constants without generating a new one
+To use your muledump constants without generating a new one  
 `python login.py --constants="path_to_your_muledump/lib/constants.js" --email="your_account_mail" --password="your_pass_here"`
 
-To view your daily login calendar
+To view your daily login calendar  
 `python login.py --print_calendar_status --email="your_account_mail" --password="your_pass_here"`
 
-Try to buy free packages
+Try to buy free packages  
 `python login.py --buy_free_packs --email="your_account_mail" --password="your_pass_here"`
 
-You can use it all together
+You can use it all together  
 `python login.py --buy_free_packs --print_calendar_status --constants="path_to_your_muledump/lib/constants.js" --email="your_account_mail" --password="your_pass_here"`
 
 If you have an accounts.json with multiple accounts, it will log and print calendar for each one, buy packs for each one...
