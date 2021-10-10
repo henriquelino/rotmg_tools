@@ -9,7 +9,7 @@ Use [muledump render](https://github.com/BR-/muledump-render) to create the cons
 ## How to use
 
 Change accounts.json to use your accounts credentials, you can copy and paste your muledump accounts to accounts.json
-Also, instead of using accounts.json you can pass email and password via arguments:
+Also, instead of using accounts.json you can pass email and password via arguments: <br>
 `python login.py --email="your_account_mail" --password="your_pass_here"`
 
 ## What dos it do?
